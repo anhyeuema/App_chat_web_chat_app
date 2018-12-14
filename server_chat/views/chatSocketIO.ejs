@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>chat SoketIO</title>
+    
+    <script src="jquery.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+    <script>
+        var socket = io('http://localhost:2500');
+        socket.on('ImagePicker-server-send-base64', (avataBas) => {
+            $('#imag2').attr("src","data:image/jpg;base64," + (avataBas));  
+        });
+        socket.on('server-send-baser64', (dataBase64) => {
+            $('#imag1').attr("src","data:image/jpg;base64," + (dataBase64.data));
+            
+            $('#listMessage').append("<div class='ms'>"+ (dataBase64.data) + "</div>");
+          
+        });
+
+        $(document).ready( () => {
+            $('#btnBase64').click( () => {
+                socket.emit('web-client-send-base64',);
+            });
+        })
+    </script>
+</head>
+<body>
+    hello chat socket io
+    <img width="400px" src="" id="imag1" >
+    <img width="400px" src="" id="imag2" >
+    <input type="button" id="btnBase64" value="send-base64" >
+    <input id="listMessage" >
+</body>
+</html>
