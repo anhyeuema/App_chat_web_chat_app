@@ -1,0 +1,13 @@
+body{ background-color: #00FFFF }
+#wrapper{ width: 800px; background-color: #50AAE0; margin: auto}
+#txtUsername{ background-color: transparent; border: solid 1px black  }
+#boxTitle{ border: solid 1px balck; padding: 5px; text-align: center; font-weight: blod  }
+#boxContent{ border: solid 1px black; border-top: nome; padding: 5px, }
+
+#left, #right{ min-height: 300px; }
+#left{width: 30%; float: left; background-color: rgb(51, 247, 77);  }
+#right{width: 70%; float: right; background-color:#007ACC;  }
+#sayhi{ text-align: right}
+#send{float: right;}
+#listMessage{background-color: #FFFFFF; height: 300px;}
+#txtMessage{background-color: white; border: solid 1px black; width: 350px;}

@@ -1,36 +1,162 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>chat SoketIO</title>
-    
-    <script src="jquery.js"></script>
-    <script src="socket.io/socket.io.js"></script>
-    <script>
-        var socket = io('http://localhost:2500');
-        socket.on('ImagePicker-server-send-base64', (avataBas) => {
-            $('#imag2').attr("src","data:image/jpg;base64," + (avataBas));  
-        });
-        socket.on('server-send-baser64', (dataBase64) => {
-            $('#imag1').attr("src","data:image/jpg;base64," + (dataBase64.data));
-            
-            $('#listMessage').append("<div class='ms'>"+ (dataBase64.data) + "</div>");
-          
-        });
 
-        $(document).ready( () => {
-            $('#btnBase64').click( () => {
-                socket.emit('web-client-send-base64',);
-            });
-        })
-    </script>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>chat SoketIO</title>
+
+  <script src="jquery.js"></script>
+  <script src="socket.io/socket.io.js"></script>
+  <script>
+
+    var socket = io('http://localhost:2500');
+
+    socket.on('web-send-image', (imaWebRecivecer) => {
+      alert('imaWebRecivecer');
+      $('#imag3_upload').attr("src", "data:image/jpeg;base64," + (imaWebRecivecer.imageWebBase64));
+      $('#listMessageBase64_web_upload').append("<div class='imageWeb' >" + (imaWebRecivecer.imageWebBase64) + "</div>");
+     
+
+    });
+    socket.on('server-send-message-room', (msRoom) => {
+      alert(msRoom);
+    });
+    socket.on('server-send-room-socket', (room_canhan) => {
+      $('#roomhientai').html(room_canhan);
+    });
+    socket.on('server-send-rooms', (rooms) => {
+      // alert('1');
+      // rooms.forEach( i => { $('#bocContent').append("<div class='dsr'" + i + "</div>" )});
+      $('#dsRooms').html('');
+      rooms.map(function (i) {
+        $('#dsRooms').append("<h4 class='room'>" + i + "</h4>")
+      })
+    });
+
+    socket.on('server-send-message', (UserMess) => {
+      $('#listMessage').append("<div class='user'>" + UserMess.un + ":" + UserMess.ms + "</div>");
+    });
+    socket.on('web-dang-ky-username-thatbai', () => {
+      alert('username da duoc su dung');
+    });
+
+    socket.on('sever-send-username-thanhcong', (use) => {
+      $('#currentUser').html(use);
+      $('#loginform').hide(2000);
+      $('#chatform').show(1000);
+    });
+
+    socket.on('server-send-danhsach-username', (danhsachUse) => {
+      $('#bocContent').html('');
+      danhsachUse.forEach(i => {
+        $('#bocContent').append("<div class='user'>" + i + "</div>");
+      });
+    });
+
+    socket.on('ImagePicker-server-send-base64', (avataBas) => {
+      $('#imag2').attr("src", "data:image/jpg;base64," + (avataBas));
+    });
+
+    socket.on('server-send-baser64', (dataBase64) => {
+      $('#imag1').attr("src", "data:image/jpg;base64," + (dataBase64.data));
+
+      $('#listMessageBase64').append("<div class='ms'>" + (dataBase64.data) + "</div>");
+
+    });
+
+
+    $(document).ready(() => {
+      //   $('#loginform').show(2000);
+      //  $('#chatform').hide(1000);
+
+      $('#btnSendMessage').click(() => {
+        socket.emit('web-send-text', $('#txtMessage').val());
+      });
+
+      $('#btnregister').click(() => {
+        socket.emit('web-dk-username', $('#txtUsername').val());
+      });
+      $('#btnBase64').click(() => {
+        socket.emit('web-client-send-base64');
+      });
+
+      $('#btnTaoRoom').click(() => {
+        socket.emit('tao-room', $('#txtRoom').val());
+      });
+
+      $('#btnSendMessage').click(() => {
+        socket.emit('server-send-chat-room', $('#txtMessage').val());
+      });
+    })
+  </script>
+  <link rel="stylesheet" type="text/css" href="layout.css" />
 </head>
+
 <body>
-    hello chat socket io
-    <img width="400px" src="" id="imag1" >
-    <img width="400px" src="" id="imag2" >
-    <input type="button" id="btnBase64" value="send-base64" >
-    <input id="listMessage" >
+  hello chat socket io
+  <div id="wrapper">
+    <div id="loginform">
+      <h1> what is your name </h1>
+      <input id="txtUsername" type="text" />
+      <input id="btnregister" type="button" value="Register" />
+    </div>
+    <div id="chatform">
+      <div id="left">
+        <div id="boxTitle"> User Online </div>
+        <div id="bocContent"> </div>
+        <div id="dsRooms"></div>
+      </div>
+      <h4 id="roomhientai"></h4>
+      <div id="right">
+        <div id="sayhi">
+          hello <span id="currentUser"></span>
+          <input type="button" id="btnLogout" value="LOGOUT" />
+        </div>
+
+        <div id="listMessage">
+
+
+        </div>
+
+        <div>
+          <div id="thongbao"></div>
+          <div id="send">
+            <input type="text" id="txtMessage" />
+            <input type="button" id="btnSendMessage" value="send-text" />
+            <input type="button" id="btnBase64" value="send-base64">
+          </div>
+        </div>
+        <div>
+          <img width="400px" src="" id="imag1">
+          <img width="400px" src="" id="imag2">
+          
+          <div id="listMessageBase64">
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div>
+
+      <input type="text" id="txtRoom">
+      <input type="button" id="btnTaoRoom" value="TAO Room">
+
+
+    </div>
+
+    <div>
+      <form action="http://localhost:2500/chat" method="Post" enctype="multipart/form-data">
+        <input type="file" class="forn-control" id="uploadfile" name="file">
+        <input type="submit" value="upload">
+        <img width="400px" src="" id="imag3_upload">
+        <div id="listMessageBase64_web_upload"></div>
+     
+     
+    </div>
+
+
 </body>
+
 </html>

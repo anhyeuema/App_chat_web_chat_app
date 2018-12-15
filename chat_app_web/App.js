@@ -64,6 +64,7 @@ export default class App extends Component {
     this.state = {
       timePassed: false,
       dataSource: ds.cloneWithRows(DATA),
+      resDATA: [],
       maunen: 'bue',
       dataJson: 'red',
       text: 'red',
@@ -71,9 +72,14 @@ export default class App extends Component {
       refreshing: false,
       page: 1,
 
-      receivetestbase64: '',
-      receiveAvatabase64: '',
+      receivetestbase64: null,
+      receiveAvatabase64: null,
+      convertJsonToBase64: null, //bien de hung chuyen tu dataImageJson dang BASE64
+      testBase64: null,
 
+      imaWebRecivecerNEW: null,
+
+      avatarTestHienThi_react_native: null,
       avatarSource: null,
       avatarBase64: [], //dulieu kieu base64
       data: null,
@@ -86,8 +92,12 @@ export default class App extends Component {
 
       dataImageJson: [], // bien nay co the trung ten voi bien dataImageJson ma ben sever gui sang
       imageNewJson: [],  //bien nay co the khac ten voi bien dataImageJson ma ben sever gui sang
-      convertJsonToBase64: [], //bien de hung chuyen tu dataImageJson dang BASE64
-      testBase64: ['bb'],
+
+      Message: '',
+      username: '',
+
+
+
       // dataClient: [],
       // dataServer: [],
       //  dataJsonC: [],
@@ -118,19 +128,87 @@ export default class App extends Component {
     });
     */
 
-    this.socket.on('server-send-baser64', (datab64) => { //lang nghe testSendBase64
-      console.log('datab64::::::', datab64);
+    this.socket.on('web-send-image', (imaWebRecivecer) => { //imgae base nhan duoc tu web send ve
+      console.log('imageWebBase64::::', imaWebRecivecer.imageWebBase64);
+      var imaWebRecivecerNEW_A = { uri: 'data:image/jpeg;base64,' + imaWebRecivecer.imageWebBase64 }
+      console.log('this.state.receivetestbase64::::', imaWebRecivecerNEW_A);
       e.setState({
-        receivetestbase64: datab64.data,
+        imaWebRecivecerNEW: imaWebRecivecerNEW_A,
+      });
+      var imaWebRecivecerNEW_AA= this.state.imaWebRecivecerNEW;
+      console.log('this.state.receivetestbase64::::', imaWebRecivecerNEW_AA);
+
+      
+      var res = {
+        imaWebRecivecerNEW_1: imaWebRecivecerNEW_AA,
+      };
+      console.log('res1::::::', res);
+      e.setState({ //can setState lai mang resDATA trong ds.cloneWithRows(resDATA),  
+        //con trong ListView se setState lai : dataSource: ds.cloneWithRows(resDATA),
+        dataSource: ds.cloneWithRows(res),
+        resDATA: res, //setState lai resData de trong Component App.js nay goi resData moi 
+        // everrywhere cho nao as cau lenh : this.state.resData
+      });
+      
+     
+    });
+
+    this.socket.on('server-send-message', async (UserMess) => {
+      console.log('UserMess::::', UserMess);
+      await e.setState({
+        Message: UserMess.ms,
+        username: UserMess.un,
       });
     });
 
-    
-    this.socket.on('ImagePicker-server-send-base64', (avataBas) => { //lang nghe emitBaseImageFromshowImage_image_picker
-      console.log('datab64::::::', avataBas);
-      e.setState({
-        receiveAvatabase64: avataBas,
+    this.socket.on('server-send-baser64', async (datab64) => { //lang nghe testSendBase64
+      console.log('datab64::::::', datab64);
+      console.log('app nhan base64 len server node:');
+      var receivetestbase64_A = await { uri: 'data:image/jpg;base64,' + datab64.data };
+      console.log('receivetestbase64_A:::::::', receivetestbase64_A);
+      await e.setState({
+        receivetestbase64: receivetestbase64_A,
       });
+      console.log('this.state.receivetestbase64::::', this.state.receivetestbase64);
+      var res = await {
+        id1: this.state.id,
+        receivetestbase64_1: this.state.receivetestbase64,
+      };
+      console.log('res1::::::', res);
+      await e.setState({ //can setState lai mang resDATA trong ds.cloneWithRows(resDATA),  
+        //con trong ListView se setState lai : dataSource: ds.cloneWithRows(resDATA),
+        dataSource: ds.cloneWithRows(res),
+        resDATA: res, //setState lai resData de trong Component App.js nay goi resData moi 
+        // everrywhere cho nao as cau lenh : this.state.resData
+      });
+      console.log('resDATA::::::', this.state.resDATA);
+      console.log('dataSource::::::', this.state.dataSource);
+
+    });
+
+
+    this.socket.on('ImagePicker-server-send-base64', async (avataBas) => { //lang nghe emitBaseImageFromshowImage_image_picker
+      console.log('datab64::::::', avataBas);
+      var receiveAvatabase64_A = await { uri: 'data:image/jpeg;base64,' + avataBas };
+      await e.setState({
+        receiveAvatabase64: receiveAvatabase64_A,
+      });
+      console.log('this.state.receiveAvatabase64', this.state.receiveAvatabase64);
+
+      var res = await {
+        id1: this.state.id,
+        receiveAvatabase64_1: this.state.receiveAvatabase64,
+      };
+      console.log('res1::::::', res);
+      await e.setState({ //can setState lai mang resDATA trong ds.cloneWithRows(resDATA),  
+        //con trong ListView se setState lai : dataSource: ds.cloneWithRows(resDATA),
+        dataSource: ds.cloneWithRows(res),
+        resDATA: res, //setState lai resData de trong Component App.js nay goi resData moi 
+        // everrywhere cho nao as cau lenh : this.state.resData
+      });
+      console.log('resDATA::::::', this.state.resDATA);
+      console.log('dataSource::::::', this.state.dataSource);
+
     });
 
     this.socket.on('server-send-data', async (data) => { //lang nghe url
@@ -143,12 +221,13 @@ export default class App extends Component {
           });
           await this.state.noidungEmit.map(async (a) => { //jsonServer //jsonServer dang base64 do ta da chuyen 
             const base64Server1 = await Buffer1.Buffer(a.jsonServer).toString('base64'); //json consvert base64
-
+            const convertJsonToBase64_A = await { uri: 'data:image/png;base64,' + a.jsonServer };
             e.setState({
               id: a.id,
-              convertJsonToBase64: a.jsonServer,
+              convertJsonToBase64: convertJsonToBase64_A,
             });
           }); //ham map.e de lay phan tutrong mang vi du 
+
 
           //   console.log('dataServer:::::', this.state.TestdataServer);
           //   console.log('this.state.TestdataServer.dataJsonC:::::', this.state.TestdataServer.dataJsonC);
@@ -160,9 +239,10 @@ export default class App extends Component {
           const dataJsonImageC1 = await this.state.TestdataServer.dataJsonImageC; //base64 chuyen duoc ham khong can chuyen json ma tu base64 cung chuyen duoc
           const dataBase64 = await Buffer1.Buffer(dataJsonImageC1).toString('base64'); //json consvert base64
           //      console.log('dataBase64:::::::::', dataBase64);
+          var testBase64_A = await { uri: 'data:image/jpeg;base64,' + dataJsonImageC1 };
           await e.setState({
             textNew: tostringtext,
-            testBase64: dataJsonImageC1,
+            testBase64: testBase64_A,
           });
 
           /*
@@ -183,8 +263,25 @@ export default class App extends Component {
           //      console.log('this.state.convertJsonToBase64:::::', this.state.convertJsonToBase64);
 
 
-          var res = await { textNew_1: this.state.textNew, id1: this.state.id, testBase64_1: this.state.testBase64, convertJsonToBase64_1: this.state.convertJsonToBase64 };
+          // var res = await { textNew_1: this.state.textNew, id1: this.state.id, testBase64_1: this.state.testBase64, convertJsonToBase64_1: this.state.convertJsonToBase64 };
           //    console.log('res;:::::', await res);
+
+          var res = await {
+            textNew_1: this.state.textNew,
+            id1: this.state.id,
+            testBase64_1: this.state.testBase64,
+            convertJsonToBase64_1: this.state.convertJsonToBase64,
+          };
+          console.log('res1::::::', res);
+          await e.setState({ //can setState lai mang resDATA trong ds.cloneWithRows(resDATA),  
+            //con trong ListView se setState lai : dataSource: ds.cloneWithRows(resDATA),
+            dataSource: ds.cloneWithRows(res),
+            resDATA: res, //setState lai resData de trong Component App.js nay goi resData moi 
+            // everrywhere cho nao as cau lenh : this.state.resData
+          });
+          console.log('resDATA::::::', this.state.resDATA);
+          console.log('dataSource::::::', this.state.dataSource);
+
           return res;
         } catch (err) {
           return err;
@@ -215,12 +312,33 @@ export default class App extends Component {
        
       }, 5000);
       */
-
     });
 
-    console.log('this.state.receivetestbase64::::',this.state.receivetestbase64);
-    console.log('this.state.receiveAvatabase64',this.state.receiveAvatabase64);
+    /*
+    var res1 = {
+      textNew_1: this.state.textNew,
+      id1: this.state.id,
+      testBase64_1: this.state.testBase64,
+      convertJsonToBase64_1: this.state.convertJsonToBase64,
+      receivetestbase64_1: this.state.receivetestbase64,
+      receiveAvatabase64_1: this.state.receiveAvatabase64,
+    };
+    console.log('res1saunay::::::', res1);
+    e.setState({ //can setState lai mang resDATA trong ds.cloneWithRows(resDATA),  
+      //con trong ListView se setState lai : dataSource: ds.cloneWithRows(resDATA),
+      dataSource: ds.cloneWithRows(res1),
+      resDATA: res1, //setState lai resData de trong Component App.js nay goi resData moi 
+      // everrywhere cho nao as cau lenh : this.state.resData
+    });
+    console.log('resDATA::::::', this.state.resDATA);
+    console.log('dataSource::::::', this.state.dataSource);
+    */
 
+  }
+
+  test_GUI_HINH_BASE64_TU_APP__LEN_WEB__VE_NODEJS() {
+    console.log(' da nhan vao text this.state.receivetestbase64::::');
+    console.log('this.state.receivetestbase64::::', this.state.receivetestbase64);
 
   }
 
@@ -267,13 +385,13 @@ export default class App extends Component {
     })
       // when response status code is 200
       .then((res) => { //res la du lieu rea ve khi len http://192.168.0.101:81/api/images/product/56.jpg lay du lieu
-          // tra ve res thi la nhieu gia tri : res{...,data: 'dulieu-kieu-base64'}
+        // tra ve res thi la nhieu gia tri : res{...,data: 'dulieu-kieu-base64'}
         console.log('res:::::2223333333333333333', res);
         // the conversion is done in native code
         // let base64Str = res.base64()
         // the following conversions are done in js, it's SYNC
         // let text = res.text()
-        // let json = res.json()
+        // let json = res.json()app-client-send-base64
         this.socket.emit('app-client-send-base64', res); //res.data de lay Basee64 trong res
         console.log('dang send base64 len server node:');
 
@@ -286,18 +404,7 @@ export default class App extends Component {
 
 
   sendEmit() {
-    /*
-    Alert.alert(
-      'Alert Title',
-      'My Alert Msg',
-      [
-        {text: 'Ask me later', onPress: () => console.log('Ask me later pressed')},
-        {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-        {text: 'OK', onPress: () => console.log('OK Pressed')},
-      ],
-      { cancelable: false }
-    );
-    */
+
     var text2 = this.state.send;
     var bytes2 = Buffer1.Buffer(text2);
     var dataJson = bytes2.toJSON();// tu json truyen buffer roi moi chuyen toString duoc
@@ -308,22 +415,22 @@ export default class App extends Component {
 
   }
 
-/*
-  showImage_picker1() {
-    showImage_Picker(callback(source_1,dataBase64_1) =>{
-        e.setState({
-          avatarBase64: dataBase64_1,
-          source_1: source
-        });
-    })
-      .then(res => console.log(res))
-      .catch(er => console.log(er) );
-  }
-*/
+  /*
+    showImage_picker1() {
+      showImage_Picker(callback(source_1,dataBase64_1) =>{
+          e.setState({
+            avatarBase64: dataBase64_1,
+            source_1: source
+          });
+      })
+        .then(res => console.log(res))
+        .catch(er => console.log(er) );
+    }
+  */
 
   showImage_Picker1() {
     ImagePicker.showImagePicker(options, (response) => { //se chuyen image thanh response{..,data: 'base64'} 
-    //de lay duoc 
+      //de lay duoc 
       console.log('Response = ', response);
       if (response.didCancel) {
         console.log('User cancelled image picker');
@@ -333,14 +440,17 @@ export default class App extends Component {
         console.log('User tapped custom button: ', response.customButton);
       } else {
         const source = { uri: response.uri };
+        const avatarTestHienThi_react_native = { uri: 'data:image/jpeg;base64,' + response.data };
         // You can also display the image using data:
         console.log('response.data', response.data);// response.data la base64
         //const source = { uri: 'data:image/jpeg;base64,' + response.data };
-
         console.log('response.uri', response.uri);//response.uri la duong dan file tai 'file://mnt/sdcard/Pictures/images/ten_anh.jpg
+        console.log('avatarTestHienThi_react_native::::', avatarTestHienThi_react_native);
+
         this.setState({ // avatarSource co gia tri moi la source, la nhug gi da duoc chon tu chup hoac thu vien
           avatarSource: source, //const source = { uri: response.uri }; la duong dan y ma
           avatarBase64: response.data, // response.data la base64
+          avatarTestHienThi_react_native: avatarTestHienThi_react_native,
         });
 
         //bay gio ta goi this.state.avatarSource o bat cu cho nao trong componet App.js thi
@@ -351,35 +461,35 @@ export default class App extends Component {
     });
   }
 
-  emitBaseImageFromshowImage_image_picker(){
-    this.socket.emit('ImagePicker-app-client-send-base64',this.state.avatarBase64);
-    console.log('dang gui BaseImageFromshowImage_image-picker ',this.state.avatarBase64);
-    
-  }
-/*
-uploadToServerNodejs1() {
-  uploadToServerNodejs([
-    // element with property `filename` will be transformed into `file` in form data
-    { name: 'avatar', filename: 'avatar.png', data: this.state.avatarBase64 },
-    // custom content type
-//    { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: this.state.avatarBase64 },
-    // part file from storage
-  //  { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: RNFetchBlob.wrap(path_to_a_file) },
-    // elements without property `filename` will be sent as plain text
-    { name: 'name', data: 'user' },
-    {
-      name: 'info', data: JSON.stringify({
-        mail: 'example@example.com',
-        tel: '12345678'
-      })
-    },
-  ])
-  .then(res => console.log(res))
-  .catch(er => console.log(er));
-}
-  */
+  emitBaseImageFromshowImage_image_picker() {
+    this.socket.emit('ImagePicker-app-client-send-base64', this.state.avatarBase64);
+    console.log('dang gui BaseImageFromshowImage_image-picker ', this.state.avatarBase64);
 
-  uploadToServerNodejs1() { 
+  }
+  /*
+  uploadToServerNodejs1() {
+    uploadToServerNodejs([
+      // element with property `filename` will be transformed into `file` in form data
+      { name: 'avatar', filename: 'avatar.png', data: this.state.avatarBase64 },
+      // custom content type
+  //    { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: this.state.avatarBase64 },
+      // part file from storage
+    //  { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: RNFetchBlob.wrap(path_to_a_file) },
+      // elements without property `filename` will be sent as plain text
+      { name: 'name', data: 'user' },
+      {
+        name: 'info', data: JSON.stringify({
+          mail: 'example@example.com',
+          tel: '12345678'
+        })
+      },
+    ])
+    .then(res => console.log(res))
+    .catch(er => console.log(er));
+  }
+    */
+
+  uploadToServerNodejs1() {
     //socket io  khai bao o port 2500, http://192.168.0.101:5000 ma ta chi
     //upload len server port 5000 chu khong emit len server nen khong ca dung port 5000
     RNFetchBlob.fetch('POST', 'http://192.168.0.101:5000/fetchblob', {//port len servert nodejs toi port 5000
@@ -390,9 +500,9 @@ uploadToServerNodejs1() {
         // element with property `filename` will be transformed into `file` in form data
         { name: 'avatar', filename: 'avatar.png', data: this.state.avatarBase64 },
         // custom content type
-    //    { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: this.state.avatarBase64 },
+        //    { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: this.state.avatarBase64 },
         // part file from storage
-      //  { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: RNFetchBlob.wrap(path_to_a_file) },
+        //  { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: RNFetchBlob.wrap(path_to_a_file) },
         // elements without property `filename` will be sent as plain text
         { name: 'name', data: 'user' },
         {
@@ -408,26 +518,41 @@ uploadToServerNodejs1() {
       });
   }
 
-  taoHang(property) { //cung nhu ham map thay property = e trong ham map
+  taoHang(property) { //cung nhu ham map thay property = e trong ham map  va dataSource: ds.cloneWithRows(resData);
+    //ma resData : res ,duoc setState in ham lang nghe socket.on 
+    // ma res=receiveAvatabase64_1 = { uri: 'data:image/jpeg;base64,' + avataBas}; da chua URI: 'data:image/jpeg;base64,' + avataBas
     this.arr = property;
-    var base64Icon = ("data:image/png;base64," + property.convertJsonToBase64_1);
+    var receivetestbase64_1_Icon = property.receivetestbase64_1; //lay duoc o componentDidMount fetch...
+    var receiveAvatabase64_1_Icon = property.receiveAvatabase64_1; //;lay o ham showImagePicker
+    var base64Icon = property.convertJsonToBase64_1; // lay dulieu tu server nodejs dung readFile(__dirname+..)
     console.log('base64Icon::::::::::::::', base64Icon);
-    var testBase64Icon = property.testBase64_1;
+
+    var testBase64Icon = property.testBase64_1; //
     return (
       <View style={{ flex: 1, backgroundColor: '#40AEE5' }} >
-        <View style={{ flex: 1, backgroundColor: '#3962FB' }} >
+        <View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#3962FB' }} >
+
           <Image
             style={{ width: 50, height: 50 }}
-            source={{ uri: 'data:image/png;base64,${property.testBase64Icon_1}' }}
+            source={receiveAvatabase64_1_Icon}
+          />
+          <Image
+            style={{ width: 50, height: 50 }}
+            source={receivetestbase64_1_Icon}
           />
 
           <Image
             style={{ width: 50, height: 50 }}
-            source={{ uri: base64Icon }}
+            source={testBase64Icon}
           />
 
-        </View>
-        <View style={{ flex: 1, backgroundColor: '#0A2B55' }}>
+          <Image
+            style={{ width: 50, height: 50 }}
+            source={base64Icon}
+          />
+
+        </View >
+        <View style={{ flex: 2, backgroundColor: '#0A2B55', flexDirection: 'row' }}>
           <Text key={property.id1}>{property.tuoi}</Text>
           <Text key={property.id1}>{property.Ten}</Text>
           <Text key={property.id1}>{property.text1}</Text>
@@ -442,72 +567,175 @@ uploadToServerNodejs1() {
   }
 
   render() {
+
+
+
     const ima = this.state.avatarSource = null ? null :
       <Image source={this.state.avatarSource} style={{ width: 150, height: 150 }} />
 
+    const imageTest_HIEN_THI_IMAGE_REACT_NATIVE = this.state.avatarTestHienThi_react_native = null ? null :
+      <Image source={this.state.avatarTestHienThi_react_native} style={{ width: 100, height: 100 }} />
+
+
+    const receivetestbase64_1_Icon_A = this.state.receivetestbase64 = null ? null :
+      <Image source={this.state.receivetestbase64_1_Icon} style={{ width: 100, height: 100 }} />
+
+    const receiveAvatabase64_1_Icon_A = this.state.receiveAvatabase64 = null ? null :
+      <Image source={this.state.receiveAvatabase64_1_Icon} style={{ width: 100, height: 100 }} />
+
+    const base64Icon_A = this.state.convertJsonToBase64 = null ? null :
+      <Image source={this.state.base64Icon} style={{ width: 100, height: 100 }} />
+
+    const testBase64Icon_A = this.state.testBase64 = null ? null :
+      <Image source={this.state.testBase64} style={{ width: 100, height: 100 }} />
+
+    const imaWebRecivecerNEW_A = this.state.imaWebRecivecerNEW = null ? null :
+      <Image source={this.state.imaWebRecivecerNEW} style={{ width: 100, height: 100 }} />
     return (
       <View style={{ flex: 1, backgroundColor: '#7C7CA8' }}>
-        <Text>Component App</Text>
-        <TouchableOpacity onPress={() => this.sendEmit()}>
-          <Text> send </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => this.testSendBase64()}>
-          <Text> send test base64 to app web </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => this.uploadToServerNodejs1()}>
-          <Text>uploadToServerNodejs</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => { this.showImage_Picker1() }}>
-          <Text>showImage Picker</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => {this.emitBaseImageFromshowImage_image_picker()}} >
-          <Text>emitBaseImageFromshowImage_image_picker</Text>
-        </TouchableOpacity>
-        {ima}
-        <Image source={require('./public/chim.png')} style={{ width: 300, height: 100 }} />
-        <Image source={{ uri: '1.jpg' }} style={{ width: 100, height: 100 }} />
-        <Image source={{ uri: 'chim.png' }} style={{ width: 300, height: 100 }} />
 
-        <Image
-          style={{
-            width: 51,
-            height: 51,
-            resizeMode: 'contain',
-          }}
-          source={{
-            uri:
-              'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAAzCAYAAAA6oTAqAAAAEXRFWHRTb2Z0d2FyZQBwbmdjcnVzaEB1SfMAAABQSURBVGje7dSxCQBACARB+2/ab8BEeQNhFi6WSYzYLYudDQYGBgYGBgYGBgYGBgYGBgZmcvDqYGBgmhivGQYGBgYGBgYGBgYGBgYGBgbmQw+P/eMrC5UTVAAAAABJRU5ErkJggg==',
-          }}
-        />
-        <ListView
-          dataSource={this.state.dataSource}
-          renderRow={this.taoHang}
-          refreshControl={
-            <RefreshControl
-              refreshing={this.state.refreshing}
-              onRefresh={() => {
-                this.setState({ refreshing: true });
-                const newpage = this.state.page + 1;
-                this.taoHang(property, newpage)
-                  .then(() => {
-                    this.arr = property.concat(this.arr);
-                    this.setState({
-                      dataSource: ds.cloneWithRows(res),
-                      refreshing: false,
-                    })
-                  }
-                  )
-                  .catch(e => console.log(e));
-              }}
+        <View style={{ flex: 1 }}>
+          <Text>Component App</Text>
+          <TouchableOpacity onPress={() => this.sendEmit()}>
+            <Text> send </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.testSendBase64()}>
+            <Text> send test base64 to app web </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.uploadToServerNodejs1()}>
+            <Text>uploadToServerNodejs</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { this.showImage_Picker1() }}>
+            <Text>showImage Picker</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { this.emitBaseImageFromshowImage_image_picker() }} >
+            <Text>emitBaseImageFromshowImage_image_picker</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { this.test_GUI_HINH_BASE64_TU_APP__LEN_WEB__VE_NODEJS() }} >
+            <Text>test_GUI_HINH_BASE64_TU_APP__LEN_WEB__VE_NODEJS</Text>
+          </TouchableOpacity>
+
+        </View>
+
+        <View style={{ flex: 6 }}>
+          <Text>{this.state.username + ':'} {this.state.Message}</Text>
+      
+            {receivetestbase64_1_Icon_A}
+            {receiveAvatabase64_1_Icon_A}
+            {base64Icon_A}
+            {testBase64Icon_A}
+            {imaWebRecivecerNEW_A}
+            <Image
+              style={{ width: 50, height: 51, resizeMode: 'contain', }}
+              source={{ uri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAAzCAYAAAA6oTAqAAAAEXRFWHRTb2Z0d2FyZQBwbmdjcnVzaEB1SfMAAABQSURBVGje7dSxCQBACARB+2/ab8BEeQNhFi6WSYzYLYudDQYGBgYGBgYGBgYGBgYGBgZmcvDqYGBgmhivGQYGBgYGBgYGBgYGBgYGBgbmQw+P/eMrC5UTVAAAAABJRU5ErkJggg==', }}
             />
-          }
-        />
+       
+
+  
+            <ListView
+              dataSource={this.state.dataSource}
+              renderRow={this.taoHang}
+              refreshControl={
+                <RefreshControl
+                  refreshing={this.state.refreshing}
+                  onRefresh={() => {
+                    this.setState({ refreshing: true });
+                    const newpage = this.state.page + 1;
+                    this.taoHang(property, newpage)
+                      .then(() => {
+                        this.arr = property.concat(this.arr);
+                        this.setState({
+                          dataSource: ds.cloneWithRows(this.state.resDATA),
+                          refreshing: false,
+                        })
+                      }
+                      )
+                      .catch(e => console.log(e));
+                  }}
+                />
+              }
+            />
+
+            {ima}
+            {imageTest_HIEN_THI_IMAGE_REACT_NATIVE}
+
+            { /*<Image source={require('./public/chim.png')} style={{ width: 300, height: 100 }} /> */}
+
+
+        </View>
+
 
       </View>
     );
   }
 }
+/*
+    Alert.alert(
+      'Alert Title',
+      'My Alert Msg',
+      [
+        {text: 'Ask me later', onPress: () => console.log('Ask me later pressed')},
+        {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+        {text: 'OK', onPress: () => console.log('OK Pressed')},
+      ],
+      { cancelable: false }
+    );
+    */
 
+/*
+  var receivetestbase64_1_Icon = { uri: 'data:image/jpg;base64,' + this.state.receivetestbase64 }; //lay duoc o componentDidMount fetch...
+    var receiveAvatabase64_1_Icon = { uri: 'data:image/jpeg;base64,' + this.state.receiveAvatabase64 }; //;lay o ham showImagePicker
+    var base64Icon = { uri: 'data:image/jpeg;base64,' + this.state.convertJsonToBase64 }; // lay dulieu tu server nodejs dung readFile(__dirname+..)
+    var testBase64Icon = { uri: 'data:image/jpeg;base64,' + this.state.testBase64 }; //
+    e.setState({
+      receivetestbase64_1_Icon: receivetestbase64_1_Icon,
+      receiveAvatabase64_1_Icon: receiveAvatabase64_1_Icon,
+      base64Icon: base64Icon,
+      testBase64Icon: testBase64Icon,
+    });
+*/
+/*
+ console.log('this.state.receivetestbase64::::', this.state.receivetestbase64);
+    console.log('this.state.receiveAvatabase64', this.state.receiveAvatabase64);
+    
+    var res1 = {
+      textNew_1: this.state.textNew,
+      id1: this.state.id,
+      testBase64_1: this.state.testBase64,
+      convertJsonToBase64_1: this.state.convertJsonToBase64,
+      receivetestbase64_1: this.state.receivetestbase64,
+      receiveAvatabase64_1: this.state.receiveAvatabase64,
+    };
+    console.log('res1::::::', res1);
+    e.setState({ //can setState lai mang resDATA trong ds.cloneWithRows(resDATA),  
+      //con trong ListView se setState lai : dataSource: ds.cloneWithRows(resDATA),
+      dataSource: ds.cloneWithRows(res1),
+      resDATA: res1, //setState lai resData de trong Component App.js nay goi resData moi 
+      // everrywhere cho nao as cau lenh : this.state.resData
+    });
+    console.log('resDATA::::::', this.state.resDATA);
+    console.log('dataSource::::::', this.state.dataSource);
+*/
+
+/*
+
+    console.log('this.state.receivetestbase64::::', this.state.receivetestbase64);
+    console.log('this.state.receiveAvatabase64', this.state.receiveAvatabase64);
+    var res1 = {
+      textNew_1: this.state.textNew,
+      id1: this.state.id,
+      testBase64_1: this.state.testBase64,
+      convertJsonToBase64_1: this.state.convertJsonToBase64,
+      receivetestbase64_1: this.state.receivetestbase64,
+      receiveAvatabase64_1: this.state.receiveAvatabase64,
+    };
+    e.setState({ //can setState lai mang resDATA trong ds.cloneWithRows(resDATA),  
+      //con trong ListView se setState lai : dataSource: ds.cloneWithRows(resDATA),
+      resDATA: res1, //setState lai resData de trong Component App.js nay goi resData moi 
+      // everrywhere cho nao as cau lenh : this.state.resData
+    });
+    console.log('resDATA::::::', this.state.resDATA);
+*/
 
 /*
  showImage() {
