@@ -1,0 +1,3 @@
+rootProject.name = 'Test_REGISTER_LOGIN'
+
+include ':app'

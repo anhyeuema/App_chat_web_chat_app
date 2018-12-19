@@ -7,7 +7,7 @@ server.listen(2500, console.log('start_server port 2500'));
 
 app.use(express.static('public'));//thu vien cho thu luc nao co duoi .js thu vien anh cho  $("#img2").attr("src", "data:image/png;base64," + b64(buff.buffer));
 app.use(express.static(path.join(__dirname, 'upload'))); //thu muc de chua thu vien cho anh trong file ejs hoac html
-//app.use(express.static('public')); //su dung thuvien cho ejs
+app.use(express.static('public')); //su dung thuvien cho ejs
 app.set('view engine', 'ejs');
 app.set('views', './views');
 
@@ -17,47 +17,47 @@ var Buffer = require('buffer/').Buffer;
 
 
 app.get('/chitiet/:a/:b', (req, res) => {
-    var n = req.params.a;
-    var m = req.params.b;
-    //  res.send("username: " + n + " password:" + m);
-    res.sendFile(__dirname + '/data.html');
-    //  res.render('chitiet');
+  var n = req.params.a;
+  var m = req.params.b;
+  //  res.send("username: " + n + " password:" + m);
+  res.sendFile(__dirname + '/data.html');
+  //  res.render('chitiet');
 });
 
 app.get('/chat', (req, res) => {
-    res.render('chatSocketIO');
+  res.render('chatSocketIO');
 });
 
 var http = require('http');
 var fs = require('fs');
-http.createServer(function(req, res) {
-    // doc noi dung o data.html roi moi tra ve file html( res.end(data))
-    // res.writeHead(200, { "Content-Type": "text/html" });
-    // var data = fs.readFileSync(__dirname + '/data.html', 'utf-8');
-    //data = replace({NAME}, {khoapham: 1009});
-    //res.end(data);
-    //fs.createReadStream(__dirname + '/data.html').pipe(res);
-    res.writeHead(200, { "Content-Type": "application/json" });
-    var data = {
-        username: [{ //sau nay tay ke noi vao database de do du lieu ra cho khach hanh len web server lay du lieu json
-            ho: 'nguyen',
-            ten: 'hung',
-            namsinh: '1998'
-        }]
-    };
-    data = JSON.stringify(data);
-    res.end(data);
+http.createServer(function (req, res) {
+  // doc noi dung o data.html roi moi tra ve file html( res.end(data))
+  // res.writeHead(200, { "Content-Type": "text/html" });
+  // var data = fs.readFileSync(__dirname + '/data.html', 'utf-8');
+  //data = replace({NAME}, {khoapham: 1009});
+  //res.end(data);
+  //fs.createReadStream(__dirname + '/data.html').pipe(res);
+  res.writeHead(200, { "Content-Type": "application/json" });
+  var data = {
+    username: [{ //sau nay tay ke noi vao database de do du lieu ra cho khach hanh len web server lay du lieu json
+      ho: 'nguyen',
+      ten: 'hung',
+      namsinh: '1998'
+    }]
+  };
+  data = JSON.stringify(data);
+  res.end(data);
 }).listen(7777, console.log('connected server 7777'));
 
 var bodyParser = require('body-parser');
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 app.post('/data', urlencodedParser, (req, res) => {
-    var u = req.body.username;
-    var p = req.body.password;
-    //  res.writeHead({" Content-Type": "application/json"});
-    //  var data = [{u = '', p = '',}];
-    // res.end(data);
-    res.send("Username:" + u + " Password:" + p);
+  var u = req.body.username;
+  var p = req.body.password;
+  //  res.writeHead({" Content-Type": "application/json"});
+  //  var data = [{u = '', p = '',}];
+  // res.end(data);
+  res.send("Username:" + u + " Password:" + p);
 });
 
 
@@ -80,39 +80,97 @@ var storage = multer.diskStorage({
     }
 });
 */
-
 var storage = multer.memoryStorage(); //
 //single('avatar') chon 1  file duy nhat
 var upload = multer({ storage: storage }).single('file'); // cau hinh upload
 
-
 app.post('/chat', urlencodedParser, (req, res) => {
 
   //console.log('req::::::',req.file);
-  upload(req, res, function(err) {
-      if (err !== null) {
-          // An unknown error occurred when uploading.
-          // res.send('oke- da upload file');
-          console.log('req.file::::::', req.file);
-          console.log('req.file.filename:::', req.file.filename);
-          console.log('req.file.buffer::::::', req.file.buffer);
-        //  console.log('req.file.buffer.toStringbase64::', req.file.buffer.toString('base64'));
-          io.sockets.emit('web-send-image',{imageWebBase64:req.file.buffer.toString('base64')});
-          res.render('chatSocketIO'); // load lai ejs chatSocketIO thi ben nay se k hen anh nhung doi tuong App va ng khac se nhan duoc base64
-          
+  upload(req, res, function (err) {
+    if (err !== null) {
+      // An unknown error occurred when uploading.
+      // res.send('oke- da upload file');
+      console.log('req.file::::::', req.file);
+      console.log('req.file.filename:::', req.file.filename);
+      console.log('req.file.buffer::::::', req.file.buffer);
+      //  console.log('req.file.buffer.toStringbase64::', req.file.buffer.toString('base64'));
+      io.sockets.emit('web-send-image', { imageWebBase64: req.file.buffer.toString('base64') });
+      res.render('chatSocketIO'); // load lai ejs chatSocketIO thi ben nay se k hen anh nhung doi tuong App va ng khac se nhan duoc base64
+    } else {
 
-      } else {
-
-          // A Multer error occurred when uploading.
-          res.send('loi');
-      }
-
-      // Everything went fine.
+      // A Multer error occurred when uploading.
+      res.send('loi');
+    }
+    // Everything went fine.
   })
-
-
 });
 
+var express = require('express');
+var bodyParser = require('body-parser');
+var session = require('express-session'); //khai bao session tren Passport
+var Passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy
+
+var fs = require('fs');
+//var app = express();
+app.set('views', './views');
+app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({ extended: true })); //khai bao session tren Passport
+
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true
+}))
+app.use(Passport.initialize());
+app.use(Passport.session()); // su dung session de ghi du lieu ra ngoai
+
+app.get('/', (req, res) => {
+  res.render('trangchu');
+});
+
+app.route('/login')
+  .get((req, res) => {
+    console.log('dangvao-login');
+    res.render('login');
+  })
+  .post(Passport.authenticate('local', {
+    failureRedirect: '/login',
+    successRedirect: '/loginOK'
+  })); //phung thuc local sai dieu huong ve trang '/login'
+
+app.get('/loginOK', (req, res) => {
+  res.send('login_succeffully');
+});
+
+Passport.use(new LocalStrategy(
+  (username, password, done) => {
+    fs.readFile('./userDatabay.json', (err, data) => {
+      //data dang la buffer nen chua thao tac voi no duoc nen can JSON.parse no ve  object
+      const db = JSON.parse(data);
+      //db la object nen ta can dung ham find tim username khop voi username nguoi dung 
+      const userRecord = db.find(user => user.usr == username); //tao bien userRecord huong no
+      //sau do so sanh tiep voi password 
+      //neu user co trong userDattabay cua minh thi va userRecord.pwd bang password trog databay thi
+      if (userRecord && userRecord.pwd == password) {
+        //goi ham done loi la null , userRecord
+        return done(null, userRecord);
+        //neu ma username nhap sai hay pass sai thi nhay toi else{}
+      } else {
+        return done(null, false);
+      }
+    })
+  }
+))
+//chung thuc thanh cong thi goi ham serialaizeUser()
+//(user,done) la return done(null, userRecord); ket qua o tren ham Passport.use tra ve
+Passport.serializeUser((user, done) => {
+  //dai dien cho nguoi dung luu ra cooki, chon truong lau usr (username o databaydo)
+  done(null, user.usr);
+});
+
+// app.listen(2500, () => console.log('server tao port 2500 tren app'));
 
 var express = require('express');
 var app1 = express();
@@ -120,10 +178,10 @@ var server1 = require('http').createServer(app1); // dung createServer hay Serve
 app1.set('view engine', 'ejs');
 app1.set('views', './views');
 server1.listen(2700, console.log('ket noi server app1  kiemtra port 2700'));
-app1.get('/', function(req, res) {
-    //res.send("<font color=red>hello</font>");
-    // res.sendFile(__dirname + '/data.html');
-    res.render('chitiet');
+app1.get('/', function (req, res) {
+  //res.send("<font color=red>hello</font>");
+  // res.sendFile(__dirname + '/data.html');
+  res.render('chitiet');
 });
 
 
@@ -131,126 +189,126 @@ var express = require('express');
 var app2 = express();
 var formidable = require('express-formidable');
 app2.use(formidable({ //khi fetch-blob ma post du lieu len thi se dinh nghia huong luu file uploadDir
-    uploadDir: './public/upload',
-    encoding: 'utf-8',
+  uploadDir: './public/upload',
+  encoding: 'utf-8',
 }));
 app2.listen(5000, console.log('start port 5000 test fetch blob'));
 
 app2.get('/xinchao', (req, res) => {
-    res.send('xinchao');
+  res.send('xinchao');
 })
 
 app2.post('/fetchblob', (req, res) => { //phai la post vi fetch-blob len theo phuong thuc post
-    // console.log('req::::',req);
-    console.log('req.fields::::', req.fields);
-    // console.log(req.fields); //log ra truong k phai file
-    console.log('req.files.avatar::::', req.files.avatar); // log ra truong file nhan duoc tu react-native fetch-blob gui cho server nodejs
-    console.log('req.files.avatar.file.path::::', req.files.avatar.path); // log ra truong file nhan duoc tu react-native fetch-blob gui cho server nodejs
+  // console.log('req::::',req);
+  console.log('req.fields::::', req.fields);
+  // console.log(req.fields); //log ra truong k phai file
+  console.log('req.files.avatar::::', req.files.avatar); // log ra truong file nhan duoc tu react-native fetch-blob gui cho server nodejs
+  console.log('req.files.avatar.file.path::::', req.files.avatar.path); // log ra truong file nhan duoc tu react-native fetch-blob gui cho server nodejs
 
 
-    //  fs.rename(req.files.avatar); //name gui xuong la avata
-    //  fs.rename(req.files.avatar.path); //lay duong dan da luu tren server nodejs
-    fs.rename(req.files.avatar.path, req.files.avatar.path + '.jpg', (err) => {
-        if (err != null) {
-            console.log('upload file tu react-native-in-server-nodejs-succeffully');
-        } else {
-            console.log(err);
-        }
+  //  fs.rename(req.files.avatar); //name gui xuong la avata
+  //  fs.rename(req.files.avatar.path); //lay duong dan da luu tren server nodejs
+  fs.rename(req.files.avatar.path, req.files.avatar.path + '.jpg', (err) => {
+    if (err != null) {
+      console.log('upload file tu react-native-in-server-nodejs-succeffully');
+    } else {
+      console.log(err);
+    }
 
-    }); //lay duong dan da luu tren server nodejs
+  }); //lay duong dan da luu tren server nodejs
 
-    res.send('xinchao');
+  res.send('xinchao');
 });
 
 
 var mangUserName = [];
 io.on('connection', async (socket) => {
-    console.log('client-connected port 2500 :' + socket.id);
-    console.log('socket.adapter.rooms::::', socket.adapter.rooms);
+  console.log('client-connected port 2500 :' + socket.id);
+  console.log('socket.adapter.rooms::::', socket.adapter.rooms);
 
-    socket.on('server-send-chat-room', (message_room) => {
-        //emit ve cai thang tao-room do
-        io.sockets.in(socket.phong).emit('server-send-message-room', message_room);
-    });
-    socket.on('tao-room', (data) => {
-        console.log('tao duoc room' + data);
-        socket.join(data);
-        socket.phong = data; // gan cai thang vau ket noi do = data
+  socket.on('server-send-chat-room', (message_room) => {
+    //emit ve cai thang tao-room do
+    io.sockets.in(socket.phong).emit('server-send-message-room', message_room);
+  });
+  socket.on('tao-room', (data) => {
+    console.log('tao duoc room' + data);
+    socket.join(data);
+    socket.phong = data; // gan cai thang vau ket noi do = data
 
-        var mang = [];
-        for (r in socket.adapter.rooms) {
-            console.log(r);
-            mang.push(r); //push danh sach rooms vao mang
+    var mang = [];
+    for (r in socket.adapter.rooms) {
+      console.log(r);
+      mang.push(r); //push danh sach rooms vao mang
 
-        }
-        io.sockets.emit('server-send-rooms', mang);
-        console.log('mang:::', mang);
-        socket.emit('server-send-room-socket', socket.phong)
+    }
+    io.sockets.emit('server-send-rooms', mang);
+    console.log('mang:::', mang);
+    socket.emit('server-send-room-socket', socket.phong)
 
-    });
+  });
 
-    socket.on('web-send-text', (message) => {
-        console.log('socket.Usename::', socket.Usename);
-        console.log('socket.Usename::', message);
-        io.sockets.emit('server-send-message', { un: socket.Usename, ms: message })
-    });
+  socket.on('web-send-text', (message) => {
+    console.log('socket.Usename::', socket.Usename);
+    console.log('socket.Usename::', message);
+    io.sockets.emit('server-send-message', { un: socket.Usename, ms: message })
+  });
 
-    socket.on('web-dk-username', (user) => {
-        console.log('have wonam register username: ' + user);
-        if (mangUserName.indexOf(user) >= 0) {
-            socket.emit('web-dang-ky-username-thatbai');
-        } else {
-            mangUserName.push(user);
-            socket.Usename = user
-            socket.emit('sever-send-username-thanhcong', user);
-            io.sockets.emit('server-send-danhsach-username', mangUserName);
-        }
+  socket.on('web-dk-username', (user) => {
+    console.log('have wonam register username: ' + user);
+    if (mangUserName.indexOf(user) >= 0) {
+      socket.emit('web-dang-ky-username-thatbai');
+    } else {
+      mangUserName.push(user);
+      socket.Usename = user
+      socket.emit('sever-send-username-thanhcong', user);
+      io.sockets.emit('server-send-danhsach-username', mangUserName);
+    }
 
-    });
+  });
 
-    socket.on('web-client-send-base64', () => {
+  socket.on('web-client-send-base64', () => {
 
-    });
+  });
 
-    socket.on('ImagePicker-app-client-send-base64', (avataBase64) => {
-        io.emit('ImagePicker-server-send-base64', avataBase64)
-    });
-    socket.on('app-client-send-base64', (database64) => {
-        console.log('database64', database64);
-        console.log('data dulieu base64::::', database64.data);
+  socket.on('ImagePicker-app-client-send-base64', (avataBase64) => {
+    io.emit('ImagePicker-server-send-base64', avataBase64)
+  });
+  socket.on('app-client-send-base64', (database64) => {
+    console.log('database64', database64);
+    console.log('data dulieu base64::::', database64.data);
+    io.sockets.emit('server-send-baser64', database64);
+    /*
+    writeFileSync(__dirname + '/public/upload/' + 'new_huong.jpg', '%database64.data%','base64', (err) => {
+      if( err != null) {
+        console.log('da luu file::');
         io.sockets.emit('server-send-baser64', database64);
-        /*
-        writeFileSync(__dirname + '/public/upload/' + 'new_huong.jpg', '%database64.data%','base64', (err) => {
-          if( err != null) {
-            console.log('da luu file::');
-            io.sockets.emit('server-send-baser64', database64);
-          } else {
-            console.log('dhi phai sayr ra loi');
-          }
-        });
-        */
+      } else {
+        console.log('dhi phai sayr ra loi');
+      }
+    });
+    */
+
+  });
+
+  await socket.on('client-send-data', async (data) => {
+    console.log('lang nghe dc client-send-data ');
+    console.log('app vua gui massage: ' + (data));
+    fs.readFile(__dirname + '/public' + '/1.jpg', async (err, dulieu) => {
+      var DATA = { noidungEmit: [{ id: socket.id, jsonServer: dulieu.toString('base64') }], dataServer: data }; //chuyen dulieu tu buffer sang json
+      var base64_A = dulieu.toString('base64');
+      //gui emit truc tiep du lieu dulieu la buffer k dc trong react-native
+      await io.sockets.emit('server-send-data', await { noidungEmit: [{ id: socket.id, jsonServer: dulieu.toString('base64') }], dataServer: data });
+
+      /*
+      console.log('dataJsonImageCemit:::::::::', DATA.dataServer.dataJsonImageC);
+      await DATA.noidungEmit.map(async (e0) => {
+        console.log('jsonServer::::::', e0.jsonServer);
+        // console.log('baseServer:::::::', await Buffer(e0.jsonServer).toString('base64'));
+      });
+      */
 
     });
-
-    await socket.on('client-send-data', async (data) => {
-        console.log('lang nghe dc client-send-data ');
-        console.log('app vua gui massage: ' + (data));
-        fs.readFile(__dirname + '/public' + '/1.jpg', async (err, dulieu) => {
-            var DATA = { noidungEmit: [{ id: socket.id, jsonServer: dulieu.toString('base64') }], dataServer: data }; //chuyen dulieu tu buffer sang json
-            var base64_A = dulieu.toString('base64');
-            //gui emit truc tiep du lieu dulieu la buffer k dc trong react-native
-            await io.sockets.emit('server-send-data', await { noidungEmit: [{ id: socket.id, jsonServer: dulieu.toString('base64') }], dataServer: data });
-
-            /*
-            console.log('dataJsonImageCemit:::::::::', DATA.dataServer.dataJsonImageC);
-            await DATA.noidungEmit.map(async (e0) => {
-              console.log('jsonServer::::::', e0.jsonServer);
-              // console.log('baseServer:::::::', await Buffer(e0.jsonServer).toString('base64'));
-            });
-            */
-
-        });
-    });
+  });
 
 });
 
@@ -258,30 +316,30 @@ io.on('connection', async (socket) => {
 //base64 convert image
 var fs = require('fs');
 let data = 'iVBORw0KGgoAAAANSUhEUgAAABkAAAATCAYAAABlcqYFAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAA' +
-    'CA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAAsTAAALEwEAmpwYAAABWWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0' +
-    'YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly' +
-    '93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAg' +
-    'ICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyI+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZm' +
-    'Y6T3JpZW50YXRpb24+CiAgICAgIDwvcmRmOkRlc2NyaXB0aW9uPgogICA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgpMwidZAAADuUlEQVQ4EbVU' +
-    'TUtcZxR+7ufkXp1SZ4iZRE1EDVQRnTAhowsZMFm40I2rNqUIIev8hvoPQroQXBTqwiAWcd0EglEhiZNajVZrQGXAWAzaZpzMnZn7lXPeeIe5Da' +
-    'Wb9Ax33vOec8/znI/3vVI6nfbxP4v8b/iSJIGfzyGfkPi+D13XUalUBL6qqmIvy5+8WuX/r2RCkUzAoIuLi2hqaoLrutjb28P6+josyxJkiqJA' +
-    '07SQXiqVwHaOZYx/itLc3Px9YIxEIlheXsbExATGxsYwMjIiwEdHRwXA/Pw8EokEcrkcDg4OYJomVlZWMDU1JSqfmZlBR0cHbNsOtVoNCHjlTF' +
-    'iSySQMwxAVxONxQbi0tIRMJoPe3l5MT0+jtbUVg4ODYGImY18qlcL4+DhisZjoggCjv1C7uOyenh7Mzs5iY2ND6FQpdnd3sba2JloSjUYxPDyM' +
-    '/v5+TE5OYn9/X9jZtrOzg+3t7WqyAUmoEu419/+HBw9E+eVymbJqAJP39fWBCR3HEU+hUMDQ0JCYGc8um81iYGAAjY2N8DwvwBdraCY8tHhDA1' +
-    'Y3N9Hd3S2yvH37O7RcbsF7AuUsD9+8wdOFBTx/8QJtbW1C5/nMzc3R0D2UyxXk83lRXcAk1V5GCT5sSUGDbeHxy9/EO98M9OOXzT9wfHISxKC1' +
-    'vR0GHfOtrS2g/SouWwU0Xkggu7qO9PUkJFULnbIQyTm6ewu2hF+vnOIIUQwdGlg8f4QF6wvMWBq+pAkaskSnx4FFVUf0CNpcC797KizXQ4oAHh' +
-    'VdXJJ81F7j6kwUynPHlXDPdFB2fRj+KVK0KvT2rbp3uKYryJU11Cke8qqMuOoioeeJ1MPDYxM36m1cNSq4GdFx58RAWvbx8TrXnK4IgR16Em5G' +
-    'K4iqHi5GHHxLgcSDn97WgZPoND+GGZRpPYH85cgiiRQl1ltXxmFFQ5PuopP8TrW5ZyRcWp7AbmkeZefg5+N6PPnbRJdpw/YlfB0vQiPQZwVdZN' +
-    'tFZEVK6D1VTnccJlXzuqTjvOZiq6Rhj2KqLSJsofOHgIl8+t0/qsfDioxmSUWGjrRFzhYi/5Oynrdl3KXHIZDXtF6hil8R6I9FBV/RvDLnXKxS' +
-    'bAdVYhNeINXBMwmXWCTQGG2Y+Jj+dFrfEmiMAtmeowpo9ojTvkD+A/L1UJUMmiVfkuz6WTyZhFRJAgP33j3bsM5k/Fng68UP21hYJyyxZwLWuS' +
-    '2cKMfUSm3rhD0g4E2g197fwMZ+Bgt8rNe2iP2BhL5dgfFzrx8AfECEDdx45a0AAAAASUVORK5CYII=';
+  'CA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAAsTAAALEwEAmpwYAAABWWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0' +
+  'YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly' +
+  '93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAg' +
+  'ICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyI+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZm' +
+  'Y6T3JpZW50YXRpb24+CiAgICAgIDwvcmRmOkRlc2NyaXB0aW9uPgogICA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgpMwidZAAADuUlEQVQ4EbVU' +
+  'TUtcZxR+7ufkXp1SZ4iZRE1EDVQRnTAhowsZMFm40I2rNqUIIev8hvoPQroQXBTqwiAWcd0EglEhiZNajVZrQGXAWAzaZpzMnZn7lXPeeIe5Da' +
+  'Wb9Ax33vOec8/znI/3vVI6nfbxP4v8b/iSJIGfzyGfkPi+D13XUalUBL6qqmIvy5+8WuX/r2RCkUzAoIuLi2hqaoLrutjb28P6+josyxJkiqJA' +
+  '07SQXiqVwHaOZYx/itLc3Px9YIxEIlheXsbExATGxsYwMjIiwEdHRwXA/Pw8EokEcrkcDg4OYJomVlZWMDU1JSqfmZlBR0cHbNsOtVoNCHjlTF' +
+  'iSySQMwxAVxONxQbi0tIRMJoPe3l5MT0+jtbUVg4ODYGImY18qlcL4+DhisZjoggCjv1C7uOyenh7Mzs5iY2ND6FQpdnd3sba2JloSjUYxPDyM' +
+  '/v5+TE5OYn9/X9jZtrOzg+3t7WqyAUmoEu419/+HBw9E+eVymbJqAJP39fWBCR3HEU+hUMDQ0JCYGc8um81iYGAAjY2N8DwvwBdraCY8tHhDA1' +
+  'Y3N9Hd3S2yvH37O7RcbsF7AuUsD9+8wdOFBTx/8QJtbW1C5/nMzc3R0D2UyxXk83lRXcAk1V5GCT5sSUGDbeHxy9/EO98M9OOXzT9wfHISxKC1' +
+  'vR0GHfOtrS2g/SouWwU0Xkggu7qO9PUkJFULnbIQyTm6ewu2hF+vnOIIUQwdGlg8f4QF6wvMWBq+pAkaskSnx4FFVUf0CNpcC797KizXQ4oAHh' +
+  'VdXJJ81F7j6kwUynPHlXDPdFB2fRj+KVK0KvT2rbp3uKYryJU11Cke8qqMuOoioeeJ1MPDYxM36m1cNSq4GdFx58RAWvbx8TrXnK4IgR16Em5G' +
+  'K4iqHi5GHHxLgcSDn97WgZPoND+GGZRpPYH85cgiiRQl1ltXxmFFQ5PuopP8TrW5ZyRcWp7AbmkeZefg5+N6PPnbRJdpw/YlfB0vQiPQZwVdZN' +
+  'tFZEVK6D1VTnccJlXzuqTjvOZiq6Rhj2KqLSJsofOHgIl8+t0/qsfDioxmSUWGjrRFzhYi/5Oynrdl3KXHIZDXtF6hil8R6I9FBV/RvDLnXKxS' +
+  'bAdVYhNeINXBMwmXWCTQGG2Y+Jj+dFrfEmiMAtmeowpo9ojTvkD+A/L1UJUMmiVfkuz6WTyZhFRJAgP33j3bsM5k/Fng68UP21hYJyyxZwLWuS' +
+  '2cKMfUSm3rhD0g4E2g197fwMZ+Bgt8rNe2iP2BhL5dgfFzrx8AfECEDdx45a0AAAAASUVORK5CYII=';
 
 fs.writeFile(__dirname + '/public/upload/' + 'logo.png', data, 'base64', (er) => {
-    if (er != null) {
-        console.log('file-da_duoc-ghi:');
-    } else {
-        console.log('da co error say ra nen khong ghi duoc file');
-    }
+  if (er != null) {
+    console.log('file-da_duoc-ghi:');
+  } else {
+    console.log('da co error say ra nen khong ghi duoc file');
+  }
 });
 
 

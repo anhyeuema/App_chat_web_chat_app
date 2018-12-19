@@ -135,10 +135,10 @@ export default class App extends Component {
       e.setState({
         imaWebRecivecerNEW: imaWebRecivecerNEW_A,
       });
-      var imaWebRecivecerNEW_AA= this.state.imaWebRecivecerNEW;
+      var imaWebRecivecerNEW_AA = this.state.imaWebRecivecerNEW;
       console.log('this.state.receivetestbase64::::', imaWebRecivecerNEW_AA);
 
-      
+
       var res = {
         imaWebRecivecerNEW_1: imaWebRecivecerNEW_AA,
       };
@@ -149,8 +149,8 @@ export default class App extends Component {
         resDATA: res, //setState lai resData de trong Component App.js nay goi resData moi 
         // everrywhere cho nao as cau lenh : this.state.resData
       });
-      
-     
+
+
     });
 
     this.socket.on('server-send-message', async (UserMess) => {
@@ -594,7 +594,7 @@ export default class App extends Component {
     return (
       <View style={{ flex: 1, backgroundColor: '#7C7CA8' }}>
 
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 2 }}>
           <Text>Component App</Text>
           <TouchableOpacity onPress={() => this.sendEmit()}>
             <Text> send </Text>
@@ -617,9 +617,10 @@ export default class App extends Component {
 
         </View>
 
-        <View style={{ flex: 6 }}>
-          <Text>{this.state.username + ':'} {this.state.Message}</Text>
-      
+        <View style={{ flex: 6, backgroundColor: '#B9C3F3' }}>
+          <View style={{ flex: 2, backgroundColor: '#CBFE8E' }}>
+
+            <Text>{this.state.username + ':'} {this.state.Message}</Text>
             {receivetestbase64_1_Icon_A}
             {receiveAvatabase64_1_Icon_A}
             {base64Icon_A}
@@ -629,9 +630,15 @@ export default class App extends Component {
               style={{ width: 50, height: 51, resizeMode: 'contain', }}
               source={{ uri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAAzCAYAAAA6oTAqAAAAEXRFWHRTb2Z0d2FyZQBwbmdjcnVzaEB1SfMAAABQSURBVGje7dSxCQBACARB+2/ab8BEeQNhFi6WSYzYLYudDQYGBgYGBgYGBgYGBgYGBgZmcvDqYGBgmhivGQYGBgYGBgYGBgYGBgYGBgbmQw+P/eMrC5UTVAAAAABJRU5ErkJggg==', }}
             />
-       
 
-  
+            {ima}
+            {imageTest_HIEN_THI_IMAGE_REACT_NATIVE}
+
+            { /*<Image source={require('./public/chim.png')} style={{ width: 300, height: 100 }} /> */}
+          </View>
+
+          <View style={{flex: 4, backgroundColor: '#1C89D3' }}>
+
             <ListView
               dataSource={this.state.dataSource}
               renderRow={this.taoHang}
@@ -655,11 +662,8 @@ export default class App extends Component {
                 />
               }
             />
+          </View>
 
-            {ima}
-            {imageTest_HIEN_THI_IMAGE_REACT_NATIVE}
-
-            { /*<Image source={require('./public/chim.png')} style={{ width: 300, height: 100 }} /> */}
 
 
         </View>
